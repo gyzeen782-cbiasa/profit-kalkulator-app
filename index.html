@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f0f13" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Profit Kalkulator" />
+  <title>Profit Kalkulator App</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-icon">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <rect width="56" height="56" rx="16" fill="url(#splashGrad)"/>
+          <path d="M16 38L22 28L29 33L36 20L40 26" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="40" cy="19" r="3" fill="#a78bfa"/>
+          <defs>
+            <linearGradient id="splashGrad" x1="0" y1="0" x2="56" y2="56">
+              <stop offset="0%" stop-color="#6d28d9"/>
+              <stop offset="100%" stop-color="#4f46e5"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="splash-title">Profit Kalkulator</div>
+      <div class="splash-sub">WendStudio</div>
+    </div>
+  </div>
+
+  <!-- APP WRAPPER -->
+  <div id="app" class="hidden">
+
+    <!-- TOP BAR -->
+    <header id="topbar">
+      <button id="btn-back" class="icon-btn hidden" aria-label="Kembali">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <h1 id="page-title">Beranda</h1>
+      <div id="topbar-actions"></div>
+    </header>
+
+    <!-- SCREENS -->
+    <main id="screen-container">
+
+      <!-- BERANDA -->
+      <section id="screen-home" class="screen active">
+        <div class="home-hero">
+          <div class="home-hero-label">Total Nilai Stok</div>
+          <div class="home-hero-value" id="home-total-value">Rp0</div>
+          <div class="home-hero-sub" id="home-total-files">0 file · 0 barang</div>
+        </div>
+        <div class="section-header">
+          <span>File Terakhir Dibuka</span>
+        </div>
+        <div id="home-recent" class="card-list"></div>
+        <div class="section-header">
+          <span>Semua File</span>
+          <button class="text-btn" id="btn-see-all-files">Lihat Semua</button>
+        </div>
+        <div id="home-files-preview" class="card-list"></div>
+        <div class="fab-area">
+          <button class="fab" id="btn-home-new-file">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Buat File Baru
+          </button>
+        </div>
+      </section>
+
+      <!-- FILE MANAGER -->
+      <section id="screen-files" class="screen">
+        <div class="search-bar-wrap">
+          <div class="search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="files-search" placeholder="Cari file..." />
+          </div>
+          <button class="icon-btn" id="btn-sort-files" title="Urutkan">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="files-list" class="card-list"></div>
+        <div class="empty-state hidden" id="files-empty">
+          <div class="empty-icon">📂</div>
+          <div class="empty-title">Belum Ada File</div>
+          <div class="empty-desc">Buat file pertamamu untuk mulai mencatat stok barang.</div>
+        </div>
+        <div class="fab-area">
+          <button class="fab" id="btn-files-new-file">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Buat File Baru
+          </button>
+        </div>
+      </section>
+
+      <!-- SPREADSHEET -->
+      <section id="screen-spreadsheet" class="screen">
+        <div class="ss-meta">
+          <div class="ss-meta-left">
+            <div class="ss-pct-row">
+              <span class="ss-pct-label">% Default File:</span>
+              <button class="pct-chip" id="btn-file-pct">8%</button>
+            </div>
+          </div>
+          <button class="icon-btn" id="btn-ss-notes" title="Catatan File">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="ss-table">
+            <thead>
+              <tr>
+                <th class="col-name">Nama Barang</th>
+                <th class="col-stock">Stock</th>
+                <th class="col-modal">Modal</th>
+                <th class="col-pct">%</th>
+                <th class="col-satuan">Per Satuan</th>
+                <th class="col-jumlah">Total Jumlah</th>
+                <th class="col-act"></th>
+              </tr>
+            </thead>
+            <tbody id="ss-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="ss-totals" id="ss-totals">
+          <div class="total-row">
+            <span class="total-label">Total Stock</span>
+            <span class="total-val" id="tot-stock">0</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">Total Modal</span>
+            <span class="total-val" id="tot-modal">Rp0</span>
+          </div>
+          <div class="total-row accent">
+            <span class="total-label">Total Nilai Jual</span>
+            <span class="total-val" id="tot-jumlah">Rp0</span>
+          </div>
+          <div class="total-row muted">
+            <span class="total-label">Estimasi Keuntungan</span>
+            <span class="total-val" id="tot-profit">Rp0</span>
+          </div>
+        </div>
+
+        <div class="fab-area">
+          <button class="fab" id="btn-add-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Barang
+          </button>
+        </div>
+      </section>
+
+      <!-- KALKULATOR -->
+      <section id="screen-calculator" class="screen">
+        <div class="calc-display">
+          <div class="calc-expr" id="calc-expr"></div>
+          <div class="calc-result" id="calc-result">0</div>
+        </div>
+        <div class="calc-grid">
+          <button class="calc-btn span2 fn" data-action="clear">AC</button>
+          <button class="calc-btn fn" data-action="backspace">⌫</button>
+          <button class="calc-btn op" data-op="÷">÷</button>
+          <button class="calc-btn num" data-num="7">7</button>
+          <button class="calc-btn num" data-num="8">8</button>
+          <button class="calc-btn num" data-num="9">9</button>
+          <button class="calc-btn op" data-op="×">×</button>
+          <button class="calc-btn num" data-num="4">4</button>
+          <button class="calc-btn num" data-num="5">5</button>
+          <button class="calc-btn num" data-num="6">6</button>
+          <button class="calc-btn op" data-op="−">−</button>
+          <button class="calc-btn num" data-num="1">1</button>
+          <button class="calc-btn num" data-num="2">2</button>
+          <button class="calc-btn num" data-num="3">3</button>
+          <button class="calc-btn op" data-op="+">+</button>
+          <button class="calc-btn fn" data-action="pct">%</button>
+          <button class="calc-btn num" data-num="0">0</button>
+          <button class="calc-btn num" data-num=".">.</button>
+          <button class="calc-btn eq" data-action="equals">=</button>
+        </div>
+        <div class="calc-history-label">Riwayat</div>
+        <div id="calc-history" class="calc-history"></div>
+      </section>
+
+      <!-- CATATAN -->
+      <section id="screen-notes" class="screen">
+        <div id="notes-list-view">
+          <div id="notes-list" class="card-list"></div>
+          <div class="empty-state hidden" id="notes-empty">
+            <div class="empty-icon">📝</div>
+            <div class="empty-title">Belum Ada Catatan</div>
+            <div class="empty-desc">Tambahkan catatan untuk menyimpan informasi penting.</div>
+          </div>
+          <div class="fab-area">
+            <button class="fab" id="btn-add-note">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Catatan Baru
+            </button>
+          </div>
+        </div>
+        <div id="notes-edit-view" class="hidden">
+          <input type="text" id="note-title-input" class="note-title-input" placeholder="Judul catatan..." />
+          <textarea id="note-body-input" class="note-body-input" placeholder="Tulis catatan di sini..."></textarea>
+          <div class="note-edit-actions">
+            <button class="danger-btn" id="btn-delete-note">Hapus</button>
+            <button class="primary-btn" id="btn-save-note">Simpan</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PENGATURAN -->
+      <section id="screen-settings" class="screen">
+        <div class="settings-group">
+          <div class="settings-group-title">Tampilan</div>
+          <div class="settings-item">
+            <div class="settings-item-info">
+              <div class="settings-item-label">Dark Mode</div>
+              <div class="settings-item-desc">Tampilan gelap untuk kenyamanan mata</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-dark" checked />
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">Perhitungan</div>
+          <div class="settings-item">
+            <div class="settings-item-info">
+              <div class="settings-item-label">Persentase Default</div>
+              <div class="settings-item-desc">Dipakai saat membuat file baru</div>
+            </div>
+            <div class="settings-input-wrap">
+              <input type="number" id="input-default-pct" class="settings-input" value="8" min="0" max="999" step="0.1" />
+              <span class="settings-input-unit">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">Data</div>
+          <div class="settings-item tappable" id="btn-export-csv">
+            <div class="settings-item-info">
+              <div class="settings-item-label">Export Semua Data (CSV)</div>
+              <div class="settings-item-desc">Download semua file sebagai CSV</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="settings-item tappable" id="btn-backup">
+            <div class="settings-item-info">
+              <div class="settings-item-label">Backup Data</div>
+              <div class="settings-item-desc">Simpan semua data ke file .json</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="settings-item tappable" id="btn-restore">
+            <div class="settings-item-info">
+              <div class="settings-item-label">Restore Data</div>
+              <div class="settings-item-desc">Pulihkan data dari file backup</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <input type="file" id="restore-input" accept=".json" class="hidden" />
+          <div class="settings-item tappable danger" id="btn-clear-all">
+            <div class="settings-item-info">
+              <div class="settings-item-label">Hapus Semua Data</div>
+              <div class="settings-item-desc">Menghapus seluruh data secara permanen</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">Tentang</div>
+          <div class="settings-item">
+            <div class="settings-item-info">
+              <div class="settings-item-label">Profit Kalkulator App</div>
+              <div class="settings-item-desc">Versi 1.0.0 · Dibuat oleh WendStudio</div>
+            </div>
+          </div>
+        </div>
+        <div class="credit-footer">
+          <div class="credit-logo">
+            <svg width="18" height="18" viewBox="0 0 56 56" fill="none">
+              <rect width="56" height="56" rx="10" fill="url(#cGrad)"/>
+              <path d="M16 38L22 28L29 33L36 20L40 26" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="40" cy="19" r="3" fill="#a78bfa"/>
+              <defs><linearGradient id="cGrad" x1="0" y1="0" x2="56" y2="56"><stop offset="0%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#4f46e5"/></linearGradient></defs>
+            </svg>
+          </div>
+          <div>
+            <div class="credit-name">WendStudio</div>
+            <div class="credit-tagline">Profit Kalkulator App</div>
+          </div>
+        </div>
+      </section>
+
+    </main><!-- end screen-container -->
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottom-nav">
+      <button class="nav-item active" data-screen="home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Beranda</span>
+      </button>
+      <button class="nav-item" data-screen="files">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span>File</span>
+      </button>
+      <button class="nav-item" data-screen="calculator">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
+        <span>Kalkulator</span>
+      </button>
+      <button class="nav-item" data-screen="notes">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Catatan</span>
+      </button>
+      <button class="nav-item" data-screen="settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Pengaturan</span>
+      </button>
+    </nav>
+
+  </div><!-- end app -->
+
+  <!-- MODALS -->
+
+  <!-- Modal: New/Edit File -->
+  <div id="modal-file" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-file-title">File Baru</div>
+      <div class="form-group">
+        <label class="form-label">Nama File</label>
+        <input type="text" id="input-file-name" class="form-input" placeholder="Contoh: Stok Rokok" maxlength="40" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kategori</label>
+        <div class="category-grid" id="category-grid"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Persentase Default (%)</label>
+        <input type="number" id="input-file-pct" class="form-input" value="8" min="0" max="999" step="0.1" />
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-btn" id="btn-file-modal-cancel">Batal</button>
+        <button class="primary-btn" id="btn-file-modal-save">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add/Edit Item -->
+  <div id="modal-item" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-item-title">Tambah Barang</div>
+      <div class="form-group">
+        <label class="form-label">Nama Barang</label>
+        <input type="text" id="input-item-name" class="form-input" placeholder="Nama barang..." maxlength="60" />
+      </div>
+      <div class="form-row">
+        <div class="form-group half">
+          <label class="form-label">Stock</label>
+          <input type="number" id="input-item-stock" class="form-input" placeholder="0" min="0" step="1" />
+        </div>
+        <div class="form-group half">
+          <label class="form-label">Modal (Rp)</label>
+          <input type="number" id="input-item-modal" class="form-input" placeholder="0" min="0" step="1" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Persentase (%)</label>
+        <input type="number" id="input-item-pct" class="form-input" placeholder="8" min="0" max="999" step="0.1" />
+      </div>
+      <!-- Live preview -->
+      <div class="item-preview" id="item-preview">
+        <div class="preview-row">
+          <span>Per Satuan</span>
+          <span id="prev-satuan">Rp0</span>
+        </div>
+        <div class="preview-row accent">
+          <span>Total Jumlah</span>
+          <span id="prev-jumlah">Rp0</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-btn" id="btn-item-modal-cancel">Batal</button>
+        <button class="primary-btn" id="btn-item-modal-save">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: File Notes -->
+  <div id="modal-file-notes" class="modal-overlay hidden">
+    <div class="modal-box tall">
+      <div class="modal-title">Catatan File</div>
+      <textarea id="file-notes-input" class="note-body-input" placeholder="Tulis catatan untuk file ini..."></textarea>
+      <div class="modal-actions">
+        <button class="secondary-btn" id="btn-file-notes-cancel">Tutup</button>
+        <button class="primary-btn" id="btn-file-notes-save">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Set % -->
+  <div id="modal-pct" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title">Ubah Persentase File</div>
+      <div class="pct-chips-wrap" id="pct-quick-chips">
+        <button class="pct-chip-opt" data-v="5">5%</button>
+        <button class="pct-chip-opt" data-v="8">8%</button>
+        <button class="pct-chip-opt" data-v="10">10%</button>
+        <button class="pct-chip-opt" data-v="15">15%</button>
+        <button class="pct-chip-opt" data-v="20">20%</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Atau masukkan angka:</label>
+        <input type="number" id="input-pct-custom" class="form-input" min="0" max="999" step="0.1" />
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-btn" id="btn-pct-cancel">Batal</button>
+        <button class="primary-btn" id="btn-pct-save">Terapkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Confirm -->
+  <div id="modal-confirm" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="confirm-title">Konfirmasi</div>
+      <div class="modal-desc" id="confirm-desc"></div>
+      <div class="modal-actions">
+        <button class="secondary-btn" id="btn-confirm-cancel">Batal</button>
+        <button class="danger-btn" id="btn-confirm-ok">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/db.js"></script>
+  <script src="js/calc.js"></script>
+  <script src="js/files.js"></script>
+  <script src="js/spreadsheet.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
