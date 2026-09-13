@@ -1,13 +1,17 @@
 /**
  * spreadsheet.js — Spreadsheet / Tabel Barang
  * WendStudio · Profit Kalkulator App
+ * v2: search, sort A-Z, jumlah barang di totals
  */
 
 const SpreadsheetModule = (() => {
 
   let currentFile = null;
   let items = [];
+  let filteredItems = [];
   let editingItemId = null;
+  let sortMode = 'default'; // default | az | za
+  let searchQuery = '';
 
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -19,8 +23,52 @@ const SpreadsheetModule = (() => {
     App.navigate('spreadsheet');
     document.getElementById('page-title').textContent = file.name;
     document.getElementById('btn-file-pct').textContent = Calc.fmtPct(file.pct);
+
+    // Reset search & sort on open
+    searchQuery = '';
+    sortMode = 'default';
+    const searchEl = document.getElementById('ss-search');
+    if (searchEl) searchEl.value = '';
+    updateSortBtn();
+
+    applyFilterSort();
     renderTable();
     renderTotals();
+  }
+
+  // ---- FILTER & SORT ----
+
+  function applyFilterSort() {
+    let result = [...items];
+
+    // Filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(i => i.name.toLowerCase().includes(q));
+    }
+
+    // Sort
+    if (sortMode === 'az') result.sort((a, b) => a.name.localeCompare(b.name, 'id'));
+    else if (sortMode === 'za') result.sort((a, b) => b.name.localeCompare(a.name, 'id'));
+    // 'default' = insertion order
+
+    filteredItems = result;
+  }
+
+  function cycleSortMode() {
+    const modes = ['default', 'az', 'za'];
+    sortMode = modes[(modes.indexOf(sortMode) + 1) % modes.length];
+    updateSortBtn();
+    applyFilterSort();
+    renderTable();
+  }
+
+  function updateSortBtn() {
+    const btn = document.getElementById('btn-ss-sort');
+    if (!btn) return;
+    const labels = { default: 'Urutan', az: 'A→Z', za: 'Z→A' };
+    btn.textContent = labels[sortMode] || 'Urutan';
+    btn.classList.toggle('sort-active', sortMode !== 'default');
   }
 
   // ---- TABLE ----
@@ -29,16 +77,17 @@ const SpreadsheetModule = (() => {
     const tbody = document.getElementById('ss-tbody');
     tbody.innerHTML = '';
 
-    if (items.length === 0) {
+    if (filteredItems.length === 0) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="7" style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">Belum ada barang. Tap "Tambah Barang".</td>`;
+      const msg = searchQuery.trim()
+        ? `Tidak ada barang "${searchQuery}".`
+        : 'Belum ada barang. Tap "Tambah Barang".';
+      tr.innerHTML = `<td colspan="7" style="text-align:center;padding:32px;color:var(--text3);font-size:14px;">${msg}</td>`;
       tbody.appendChild(tr);
       return;
     }
 
-    items.forEach(item => {
-      tbody.appendChild(buildRow(item));
-    });
+    filteredItems.forEach(item => tbody.appendChild(buildRow(item)));
   }
 
   function buildRow(item) {
@@ -70,18 +119,16 @@ const SpreadsheetModule = (() => {
 
     tr.querySelector('[data-action="edit"]').addEventListener('click', () => showItemModal(item.id));
     tr.querySelector('[data-action="delete"]').addEventListener('click', () => confirmDeleteItem(item.id, item.name));
-
     return tr;
   }
 
   function renderTotals() {
     const sum = Calc.summarize(items);
+    document.getElementById('tot-barang').textContent = items.length + ' jenis';
     document.getElementById('tot-stock').textContent = sum.totalStock.toLocaleString('id-ID');
     document.getElementById('tot-modal').textContent = Calc.toRupiah(sum.totalModal);
     document.getElementById('tot-jumlah').textContent = Calc.toRupiah(sum.totalJumlah);
     document.getElementById('tot-profit').textContent = Calc.toRupiah(sum.profit);
-
-    // Sync file stats
     FilesModule.updateFileStats(currentFile.id, items);
   }
 
@@ -121,12 +168,8 @@ const SpreadsheetModule = (() => {
     const stock = parseFloat(document.getElementById('input-item-stock').value) || 0;
     const modal = parseFloat(document.getElementById('input-item-modal').value) || 0;
     const pct   = parseFloat(document.getElementById('input-item-pct').value) || 0;
-
-    const satuan = Calc.perSatuan(modal, pct);
-    const jumlah = Calc.totalJumlah(stock, modal, pct);
-
-    document.getElementById('prev-satuan').textContent = Calc.toRupiah(satuan);
-    document.getElementById('prev-jumlah').textContent = Calc.toRupiah(jumlah);
+    document.getElementById('prev-satuan').textContent = Calc.toRupiah(Calc.perSatuan(modal, pct));
+    document.getElementById('prev-jumlah').textContent = Calc.toRupiah(Calc.totalJumlah(stock, modal, pct));
   }
 
   async function saveItemFromModal() {
@@ -140,7 +183,6 @@ const SpreadsheetModule = (() => {
     if (isNaN(modal) || modal < 0) { App.toast('Modal tidak valid'); return; }
 
     const now = Date.now();
-
     if (editingItemId) {
       const item = items.find(x => x.id === editingItemId);
       item.name = name; item.stock = stock; item.modal = modal; item.pct = pct; item.updatedAt = now;
@@ -154,6 +196,7 @@ const SpreadsheetModule = (() => {
     }
 
     hideItemModal();
+    applyFilterSort();
     renderTable();
     renderTotals();
   }
@@ -162,28 +205,25 @@ const SpreadsheetModule = (() => {
     App.confirm(`Hapus "${name}"?`, 'Barang akan dihapus dari file ini.', async () => {
       await DB.Items.delete(id);
       items = items.filter(x => x.id !== id);
+      applyFilterSort();
       renderTable();
       renderTotals();
       App.toast('Barang dihapus');
     });
   }
 
-  // ---- FILE PERCENTAGE MODAL ----
+  // ---- % MODAL ----
 
   function showPctModal() {
     const modal = document.getElementById('modal-pct');
-    const input = document.getElementById('input-pct-custom');
-    input.value = currentFile.pct || 8;
-    // Highlight matching chip
+    document.getElementById('input-pct-custom').value = currentFile.pct || 8;
     document.querySelectorAll('.pct-chip-opt').forEach(btn => {
       btn.classList.toggle('selected', parseFloat(btn.dataset.v) === parseFloat(currentFile.pct));
     });
     modal.classList.remove('hidden');
   }
 
-  function hidePctModal() {
-    document.getElementById('modal-pct').classList.add('hidden');
-  }
+  function hidePctModal() { document.getElementById('modal-pct').classList.add('hidden'); }
 
   async function savePct() {
     const val = parseFloat(document.getElementById('input-pct-custom').value);
@@ -199,15 +239,10 @@ const SpreadsheetModule = (() => {
   // ---- FILE NOTES ----
 
   function showFileNotesModal() {
-    const modal = document.getElementById('modal-file-notes');
     document.getElementById('file-notes-input').value = currentFile.notes || '';
-    modal.classList.remove('hidden');
+    document.getElementById('modal-file-notes').classList.remove('hidden');
   }
-
-  function hideFileNotesModal() {
-    document.getElementById('modal-file-notes').classList.add('hidden');
-  }
-
+  function hideFileNotesModal() { document.getElementById('modal-file-notes').classList.add('hidden'); }
   async function saveFileNotes() {
     currentFile.notes = document.getElementById('file-notes-input').value;
     currentFile.updatedAt = Date.now();
@@ -222,12 +257,10 @@ const SpreadsheetModule = (() => {
     document.getElementById('btn-item-modal-cancel').addEventListener('click', hideItemModal);
     document.getElementById('btn-item-modal-save').addEventListener('click', saveItemFromModal);
 
-    // Live preview on input
     ['input-item-stock','input-item-modal','input-item-pct'].forEach(id => {
       document.getElementById(id).addEventListener('input', updateItemPreview);
     });
 
-    // % modal
     document.getElementById('btn-file-pct').addEventListener('click', showPctModal);
     document.getElementById('btn-pct-cancel').addEventListener('click', hidePctModal);
     document.getElementById('btn-pct-save').addEventListener('click', savePct);
@@ -239,10 +272,19 @@ const SpreadsheetModule = (() => {
       });
     });
 
-    // File notes
     document.getElementById('btn-ss-notes').addEventListener('click', showFileNotesModal);
     document.getElementById('btn-file-notes-cancel').addEventListener('click', hideFileNotesModal);
     document.getElementById('btn-file-notes-save').addEventListener('click', saveFileNotes);
+
+    // Search
+    document.getElementById('ss-search').addEventListener('input', e => {
+      searchQuery = e.target.value;
+      applyFilterSort();
+      renderTable();
+    });
+
+    // Sort
+    document.getElementById('btn-ss-sort').addEventListener('click', cycleSortMode);
   }
 
   function esc(str) { return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }

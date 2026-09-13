@@ -1,146 +1,161 @@
 /**
- * calculator.js — Kalkulator Standalone
+ * calculator.js — Kalkulator (fixed, like real calculator)
  * WendStudio · Profit Kalkulator App
+ *
+ * Logic: chain calculation like physical calculator
+ * 15 × 15 × 15 = works correctly, no history panel
  */
 
 const CalculatorModule = (() => {
 
-  let expr = '';
-  let result = '0';
-  let lastOp = false;
-  let history = [];
+  // State
+  let displayVal = '0';   // current display number (string)
+  let storedVal = null;   // number stored before operator
+  let currentOp = null;   // pending operator
+  let justEvaled = false; // did we just press = ?
+  let freshInput = true;  // next digit starts a new number
 
-  function display(res, ex) {
-    document.getElementById('calc-result').textContent = fmtNum(res);
-    document.getElementById('calc-expr').textContent = ex || '';
+  const OPS = {
+    '+':  (a,b) => a + b,
+    '−':  (a,b) => a - b,
+    '×':  (a,b) => a * b,
+    '÷':  (a,b) => b !== 0 ? a / b : null,
+  };
+
+  // ---- Display ----
+  function setDisplay(val) {
+    displayVal = String(val);
+    const num = parseFloat(displayVal);
+    const el = document.getElementById('calc-result');
+    if (isNaN(num)) { el.textContent = displayVal; return; }
+    // Format: up to 10 significant digits, id-ID separators
+    const formatted = parseFloat(num.toPrecision(10));
+    el.textContent = formatted.toLocaleString('id-ID', { maximumFractionDigits: 8 });
   }
 
-  function fmtNum(n) {
-    if (n === '' || n === null || n === undefined) return '0';
-    const s = String(n);
-    // Format with thousand separator if it's a plain number
-    const num = parseFloat(s);
-    if (isNaN(num)) return s;
-    // Show up to 10 sig digits, remove trailing zeros
-    const formatted = parseFloat(num.toPrecision(12));
-    return formatted.toLocaleString('id-ID', { maximumFractionDigits: 6 });
+  function setExpr(str) {
+    document.getElementById('calc-expr').textContent = str || '';
   }
 
-  function safeEval(exprStr) {
-    // Replace display ops with JS ops
-    const clean = exprStr
-      .replace(/×/g, '*')
-      .replace(/÷/g, '/')
-      .replace(/−/g, '-');
-    try {
-      // Only allow safe chars
-      if (!/^[\d\s\+\-\*\/\.\(\)]+$/.test(clean)) return null;
-      const res = Function('"use strict"; return (' + clean + ')')();
-      return isFinite(res) ? res : null;
-    } catch { return null; }
+  // ---- Compute stored op ----
+  function compute() {
+    if (currentOp === null || storedVal === null) return parseFloat(displayVal);
+    const a = storedVal;
+    const b = parseFloat(displayVal);
+    const fn = OPS[currentOp];
+    const res = fn ? fn(a, b) : b;
+    return res === null ? null : parseFloat(res.toPrecision(12));
   }
 
-  function handleNum(num) {
-    if (lastOp) { result = num === '.' ? '0.' : num; lastOp = false; }
-    else {
-      if (num === '.' && result.includes('.')) return;
-      result = result === '0' && num !== '.' ? num : result + num;
+  // ---- Handlers ----
+  function handleNum(ch) {
+    if (justEvaled) {
+      // Start fresh after =
+      displayVal = '0';
+      storedVal = null;
+      currentOp = null;
+      setExpr('');
+      justEvaled = false;
+      freshInput = true;
     }
-    display(result, expr + result);
+
+    if (freshInput) {
+      displayVal = ch === '.' ? '0.' : ch;
+      freshInput = false;
+    } else {
+      if (ch === '.' && displayVal.includes('.')) return;
+      if (displayVal === '0' && ch !== '.') displayVal = ch;
+      else displayVal += ch;
+    }
+    setDisplay(displayVal);
   }
 
   function handleOp(op) {
-    // If previous was op, replace it
-    const trimmed = expr.trimEnd();
-    const ops = ['+','−','×','÷'];
-    if (ops.some(o => trimmed.endsWith(o))) {
-      expr = trimmed.slice(0, -1) + op + ' ';
+    justEvaled = false;
+
+    // If there's a pending op and we have fresh input already typed, chain it
+    if (!freshInput && currentOp !== null && storedVal !== null) {
+      const res = compute();
+      if (res === null) { App.toast('Tidak bisa bagi nol'); return; }
+      storedVal = res;
+      setDisplay(res);
     } else {
-      expr = (expr || '') + result + ' ' + op + ' ';
+      storedVal = parseFloat(displayVal);
     }
-    lastOp = true;
-    display(result, expr);
+
+    currentOp = op;
+    freshInput = true;
+
+    // Show expr like: 15 ×
+    const dispNum = parseFloat(storedVal.toPrecision(10))
+      .toLocaleString('id-ID', { maximumFractionDigits: 8 });
+    setExpr(dispNum + ' ' + op);
   }
 
   function handleEquals() {
-    const fullExpr = expr + result;
-    const res = safeEval(fullExpr);
-    if (res === null) { App.toast('Ekspresi tidak valid'); return; }
-    const rounded = parseFloat(res.toPrecision(12));
-    // Add to history
-    history.unshift({ expr: fullExpr, res: rounded });
-    if (history.length > 20) history.pop();
-    renderHistory();
+    if (currentOp === null || storedVal === null) return;
+    const res = compute();
+    if (res === null) { App.toast('Tidak bisa bagi nol'); return; }
 
-    expr = '';
-    result = String(rounded);
-    lastOp = false;
-    display(result, fullExpr + ' =');
+    const aFmt = parseFloat(storedVal.toPrecision(10))
+      .toLocaleString('id-ID', { maximumFractionDigits: 8 });
+    const bFmt = parseFloat(parseFloat(displayVal).toPrecision(10))
+      .toLocaleString('id-ID', { maximumFractionDigits: 8 });
+    setExpr(aFmt + ' ' + currentOp + ' ' + bFmt + ' =');
+
+    setDisplay(res);
+    storedVal = null;
+    currentOp = null;
+    freshInput = true;
+    justEvaled = true;
   }
 
   function handleClear() {
-    expr = ''; result = '0'; lastOp = false;
-    display('0', '');
+    displayVal = '0';
+    storedVal = null;
+    currentOp = null;
+    freshInput = true;
+    justEvaled = false;
+    setDisplay('0');
+    setExpr('');
   }
 
   function handleBackspace() {
-    if (lastOp) { return; }
-    result = result.slice(0, -1) || '0';
-    display(result, expr + result);
+    if (freshInput || justEvaled) return;
+    displayVal = displayVal.slice(0, -1) || '0';
+    setDisplay(displayVal);
   }
 
   function handlePct() {
-    const num = parseFloat(result);
+    const num = parseFloat(displayVal);
     if (isNaN(num)) return;
-    // If there's a base in expr, compute percentage of base
-    const baseMatch = (expr || '').match(/[\d.]+\s*[\+\−]\s*$/);
-    if (baseMatch) {
-      const base = parseFloat((expr || '').match(/([\d.]+)\s*[\+\−]\s*$/)[1]);
-      result = String(parseFloat((num / 100 * base).toPrecision(12)));
+    let result;
+    if (storedVal !== null && (currentOp === '+' || currentOp === '−')) {
+      // e.g. 200 + 8% → 200 + 16
+      result = storedVal * num / 100;
     } else {
-      result = String(parseFloat((num / 100).toPrecision(12)));
+      result = num / 100;
     }
-    display(result, expr + result);
+    const r = parseFloat(result.toPrecision(12));
+    displayVal = String(r);
+    setDisplay(r);
+    freshInput = true;
   }
 
-  function renderHistory() {
-    const el = document.getElementById('calc-history');
-    el.innerHTML = '';
-    if (history.length === 0) {
-      el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Belum ada riwayat.</div>';
-      return;
-    }
-    history.slice(0, 10).forEach(h => {
-      const div = document.createElement('div');
-      div.className = 'calc-history-item';
-      div.innerHTML = `
-        <span class="calc-history-expr">${esc(h.expr)}</span>
-        <span class="calc-history-res">${fmtNum(h.res)}</span>
-      `;
-      div.addEventListener('click', () => {
-        result = String(h.res); expr = ''; lastOp = false;
-        display(result, '');
-      });
-      el.appendChild(div);
-    });
-  }
-
+  // ---- Init ----
   function init() {
     document.querySelectorAll('.calc-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const { num, op, action } = btn.dataset;
         if (num !== undefined) handleNum(num);
-        else if (op) handleOp(op);
-        else if (action === 'clear') handleClear();
+        else if (op)           handleOp(op);
+        else if (action === 'clear')     handleClear();
         else if (action === 'backspace') handleBackspace();
-        else if (action === 'equals') handleEquals();
-        else if (action === 'pct') handlePct();
+        else if (action === 'equals')    handleEquals();
+        else if (action === 'pct')       handlePct();
       });
     });
-    renderHistory();
   }
-
-  function esc(str) { return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   return { init };
 })();
