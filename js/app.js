@@ -40,7 +40,7 @@ const App = (() => {
       document.getElementById('btn-back').classList.add('hidden');
       document.getElementById('bottom-nav').style.display = 'flex';
 
-      const titles = { home: 'Beranda', files: 'File Saya', calculator: 'Kalkulator', notes: 'Catatan', settings: 'Pengaturan' };
+      const titles = { home: 'Beranda', files: 'File Saya', calculator: 'Kalkulator', notes: 'Catatan', settings: 'Pengaturan', belanja: 'Belanja' };
       document.getElementById('page-title').textContent = titles[screenId] || '';
       document.getElementById('topbar-actions').innerHTML = '';
 
@@ -48,7 +48,8 @@ const App = (() => {
       currentScreen = screenId;
 
       // Trigger screen-specific load
-      if (screenId === 'notes') NotesModule.showListView();
+      if (screenId === 'notes')   NotesModule.showListView();
+      if (screenId === 'belanja') BelanjaModule.onEnter();
     }
   }
 
@@ -106,6 +107,7 @@ const App = (() => {
     NotesModule.init();
     SettingsModule.init();
     ExportModule.init();
+    BelanjaModule.init();
 
     // Bottom nav
     document.querySelectorAll('.nav-item').forEach(btn => {
