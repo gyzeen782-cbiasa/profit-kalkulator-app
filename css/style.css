@@ -753,3 +753,152 @@ td.col-act { text-align: center; }
   color: var(--accent-light);
   font-size: 15px;
 }
+
+/* ============================================================
+   BELANJA MODULE
+   ============================================================ */
+
+/* Nav Belanja highlight */
+.nav-belanja.active { color: var(--accent-light); }
+
+/* ---- AUTOCOMPLETE ---- */
+.autocomplete-wrap { position: relative; margin-bottom: 10px; }
+.autocomplete-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); z-index: 200;
+  max-height: 240px; overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.autocomplete-item {
+  padding: 12px 14px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item:active { background: var(--surface2); }
+.ac-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.ac-meta { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.ac-file { color: var(--accent-light); }
+
+/* ---- INPUT AREA ---- */
+.belanja-input-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.belanja-input-label {
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.belanja-modal-row { display: flex; gap: 10px; margin-bottom: 10px; }
+
+.belanja-subtotal-preview {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface2); border-radius: var(--radius-sm);
+  padding: 10px 14px; font-size: 13px; color: var(--text2);
+  margin-bottom: 0;
+}
+.belanja-subtotal-preview span:last-child {
+  font-weight: 700; color: var(--accent-light); font-size: 15px;
+}
+
+/* ---- DRAFT ROW ---- */
+.belanja-list { display: flex; flex-direction: column; gap: 8px; }
+.belanja-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.belanja-row-main { flex: 1; min-width: 0; }
+.belanja-row-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.belanja-row-sub  { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.belanja-row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.belanja-row-total { font-size: 14px; font-weight: 700; color: var(--accent-light); }
+
+/* ---- TOTAL BAR ---- */
+.belanja-total-bar {
+  position: sticky; bottom: calc(var(--nav-h) + 8px);
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 16px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.25);
+  z-index: 10;
+}
+.belanja-total-info { flex: 1; }
+.belanja-total-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+.belanja-total-val   { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; display: block; }
+
+.fab-sm {
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius);
+  padding: 12px 18px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: var(--font);
+  white-space: nowrap;
+  box-shadow: 0 2px 12px var(--accent-glow);
+  transition: transform 0.12s;
+}
+.fab-sm:active { transform: scale(0.95); }
+
+/* ---- KONFIRMASI ---- */
+.konfirmasi-header {
+  background: linear-gradient(135deg, #12083a, #0e0e28);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: var(--radius-lg);
+  padding: 20px; margin-bottom: 14px;
+}
+.konfirmasi-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.konfirmasi-date  { font-size: 13px; color: rgba(167,139,250,0.7); }
+
+.konfirmasi-total-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px;
+}
+.konfirmasi-total-label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+.konfirmasi-total-val   { font-size: 24px; font-weight: 800; color: var(--accent-light); letter-spacing: -0.5px; }
+
+.konfirmasi-actions {
+  display: flex; gap: 10px; margin-top: 16px;
+}
+.konfirmasi-actions .secondary-btn,
+.konfirmasi-actions .primary-btn { flex: 1; }
+
+/* ---- HISTORY CARDS ---- */
+.history-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 10px;
+}
+.history-card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+.history-card-date  { font-size: 14px; font-weight: 600; color: var(--text); }
+.history-card-count { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.history-card-total { font-size: 18px; font-weight: 800; color: var(--accent-light); flex-shrink: 0; }
+.history-card-preview {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 0 16px 12px;
+}
+.history-pill {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 99px; padding: 3px 10px;
+  font-size: 11px; color: var(--text2); font-weight: 500;
+}
+.history-pill.muted { color: var(--text3); }
+.history-card-actions {
+  display: flex; gap: 0;
+  border-top: 1px solid var(--border);
+}
+.history-card-actions .file-action-btn {
+  flex: 1; border-radius: 0; padding: 10px 6px;
+  font-size: 12px;
+}
+
+/* danger text btn */
+.danger-text { color: var(--red) !important; }
