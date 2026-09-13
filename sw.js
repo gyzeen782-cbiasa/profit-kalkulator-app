@@ -3,7 +3,7 @@
  * WendStudio · Profit Kalkulator App
  */
 
-const CACHE_NAME = 'profit-kalkulator-v2';
+const CACHE_NAME = 'profit-kalkulator-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
   '/js/notes.js',
   '/js/settings.js',
   '/js/export.js',
+  '/js/belanja.js',
   '/js/app.js',
   '/manifest.json',
   '/icons/icon-192.png',
