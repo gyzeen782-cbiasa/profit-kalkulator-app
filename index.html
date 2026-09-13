@@ -53,20 +53,35 @@
 
       <!-- BERANDA -->
       <section id="screen-home" class="screen active">
+        <!-- HERO -->
         <div class="home-hero">
-          <div class="home-hero-label">Total Nilai Stok</div>
+          <div class="home-hero-label">Total Nilai Jual</div>
           <div class="home-hero-value" id="home-total-value">Rp0</div>
-          <div class="home-hero-sub" id="home-total-files">0 file · 0 barang</div>
+          <div class="home-hero-sub" id="home-total-files">0 file · 0 jenis barang</div>
+          <!-- stat chips -->
+          <div class="home-stats-row">
+            <div class="home-stat-chip">
+              <span class="home-stat-chip-label">Est. Untung</span>
+              <span class="home-stat-chip-val green" id="home-stat-profit">Rp0</span>
+            </div>
+            <div class="home-stat-chip">
+              <span class="home-stat-chip-label">Total Modal</span>
+              <span class="home-stat-chip-val" id="home-stat-modal">Rp0</span>
+            </div>
+            <div class="home-stat-chip">
+              <span class="home-stat-chip-label">Total Stock</span>
+              <span class="home-stat-chip-val" id="home-stat-stock">0</span>
+            </div>
+          </div>
         </div>
-        <div class="section-header">
-          <span>File Terakhir Dibuka</span>
-        </div>
-        <div id="home-recent" class="card-list"></div>
+
+        <!-- ALL FILES -->
         <div class="section-header">
           <span>Semua File</span>
-          <button class="text-btn" id="btn-see-all-files">Lihat Semua</button>
+          <button class="text-btn" id="btn-see-all-files">Kelola</button>
         </div>
         <div id="home-files-preview" class="card-list"></div>
+
         <div class="fab-area">
           <button class="fab" id="btn-home-new-file">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -102,16 +117,26 @@
 
       <!-- SPREADSHEET -->
       <section id="screen-spreadsheet" class="screen">
+        <!-- Meta row: % chip + notes -->
         <div class="ss-meta">
           <div class="ss-meta-left">
             <div class="ss-pct-row">
-              <span class="ss-pct-label">% Default File:</span>
+              <span class="ss-pct-label">% File:</span>
               <button class="pct-chip" id="btn-file-pct">8%</button>
             </div>
           </div>
           <button class="icon-btn" id="btn-ss-notes" title="Catatan File">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </button>
+        </div>
+
+        <!-- Search + Sort -->
+        <div class="search-bar-wrap" style="margin-bottom:10px;">
+          <div class="search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="ss-search" placeholder="Cari barang..." />
+          </div>
+          <button class="sort-btn" id="btn-ss-sort">Urutan</button>
         </div>
 
         <div class="table-wrap">
@@ -132,6 +157,10 @@
         </div>
 
         <div class="ss-totals" id="ss-totals">
+          <div class="total-row">
+            <span class="total-label">Jumlah Barang</span>
+            <span class="total-val" id="tot-barang">0 jenis</span>
+          </div>
           <div class="total-row">
             <span class="total-label">Total Stock</span>
             <span class="total-val" id="tot-stock">0</span>
@@ -185,8 +214,6 @@
           <button class="calc-btn num" data-num=".">.</button>
           <button class="calc-btn eq" data-action="equals">=</button>
         </div>
-        <div class="calc-history-label">Riwayat</div>
-        <div id="calc-history" class="calc-history"></div>
       </section>
 
       <!-- CATATAN -->
