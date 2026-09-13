@@ -819,30 +819,19 @@ td.col-act { text-align: center; }
 .belanja-row-total { font-size: 14px; font-weight: 700; color: var(--accent-light); }
 
 /* ---- TOTAL BAR ---- */
-.belanja-total-bar {
-  position: sticky; bottom: calc(var(--nav-h) + 8px);
-  background: var(--bg2); border: 1px solid var(--border2);
+/* Static total + konfirmasi box */
+.belanja-bottom-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px;
   margin-top: 16px;
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.25);
-  z-index: 10;
 }
-.belanja-total-info { flex: 1; }
-.belanja-total-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
-.belanja-total-val   { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; display: block; }
-
-.fab-sm {
-  background: var(--accent); color: #fff;
-  border: none; border-radius: var(--radius);
-  padding: 12px 18px; font-size: 14px; font-weight: 700;
-  cursor: pointer; font-family: var(--font);
-  white-space: nowrap;
-  box-shadow: 0 2px 12px var(--accent-glow);
-  transition: transform 0.12s;
+.belanja-bottom-total-row {
+  display: flex; justify-content: space-between; align-items: center;
 }
-.fab-sm:active { transform: scale(0.95); }
+.belanja-total-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.belanja-total-val   { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
 
 /* ---- KONFIRMASI ---- */
 .konfirmasi-header {
