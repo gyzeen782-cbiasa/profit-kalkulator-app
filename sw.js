@@ -3,24 +3,25 @@
  * WendStudio · Profit Kalkulator App
  */
 
-const CACHE_NAME = 'profit-kalkulator-v4';
+const CACHE_NAME = 'profit-kalkulator-v5';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/db.js',
-  '/js/calc.js',
-  '/js/files.js',
-  '/js/spreadsheet.js',
-  '/js/calculator.js',
-  '/js/notes.js',
-  '/js/settings.js',
-  '/js/export.js',
-  '/js/belanja.js',
-  '/js/app.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  './',
+  './index.html',
+  './css/style.css',
+  './css/theme.css',
+  './js/db.js',
+  './js/calc.js',
+  './js/files.js',
+  './js/spreadsheet.js',
+  './js/calculator.js',
+  './js/notes.js',
+  './js/settings.js',
+  './js/export.js',
+  './js/belanja.js',
+  './js/app.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
 ];
 
 self.addEventListener('install', e => {
@@ -41,6 +42,6 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
+    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('./index.html')))
   );
 });

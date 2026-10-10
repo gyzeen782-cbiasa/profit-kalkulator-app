@@ -169,3 +169,11 @@ Jika ingin file `.apk` yang bisa di-share:
 ---
 
 **WendStudio · Profit Kalkulator App v1.0.0**
+
+
+## V1.1
+
+- Tema baru gelap + pink pastel (`css/theme.css`), navigasi melayang, beranda dengan Modal Catatan dan Modal Belanja
+- Backup satu file .json (file, barang, catatan, history belanja, pengaturan) dengan validasi sebelum restore
+- Draft belanja tersimpan otomatis
+- Path service worker dan manifest relatif untuk GitHub Pages, cache v5

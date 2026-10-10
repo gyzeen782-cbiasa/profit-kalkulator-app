@@ -2,11 +2,12 @@
   "name": "Profit Kalkulator App",
   "short_name": "Profit Kalkulator",
   "description": "Aplikasi offline untuk mengelola stok dan keuntungan toko. By WendStudio.",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f0f13",
-  "theme_color": "#0f0f13",
+  "background_color": "#14111a",
+  "theme_color": "#14111a",
   "icons": [
     {
       "src": "icons/icon-192.png",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f0f13" />
+  <meta name="theme-color" content="#14111a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Profit Kalkulator" />
@@ -12,6 +12,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/theme.css" />
 </head>
 <body>
 
@@ -54,25 +55,21 @@
       <!-- BERANDA -->
       <section id="screen-home" class="screen active">
         <!-- HERO -->
-        <div class="home-hero">
-          <div class="home-hero-label">Total Nilai Jual</div>
-          <div class="home-hero-value" id="home-total-value">Rp0</div>
-          <div class="home-hero-sub" id="home-total-files">0 file · 0 jenis barang</div>
-          <!-- stat chips -->
-          <div class="home-stats-row">
-            <div class="home-stat-chip">
-              <span class="home-stat-chip-label">Est. Untung</span>
-              <span class="home-stat-chip-val green" id="home-stat-profit">Rp0</span>
-            </div>
-            <div class="home-stat-chip">
-              <span class="home-stat-chip-label">Total Modal</span>
-              <span class="home-stat-chip-val" id="home-stat-modal">Rp0</span>
-            </div>
-            <div class="home-stat-chip">
-              <span class="home-stat-chip-label">Total Stock</span>
-              <span class="home-stat-chip-val" id="home-stat-stock">0</span>
-            </div>
+        <div class="home-cards">
+          <div class="home-card accent">
+            <div class="home-card-label">Modal Catatan</div>
+            <div class="home-card-value" id="home-modal-catatan">Rp0</div>
+            <div class="home-card-sub">Total stock × modal semua barang</div>
           </div>
+          <div class="home-card">
+            <div class="home-card-label">Modal Belanja</div>
+            <div class="home-card-value" id="home-modal-belanja">Rp0</div>
+            <div class="home-card-sub" id="home-belanja-count">0 transaksi</div>
+          </div>
+        </div>
+        <div class="home-counts">
+          <div class="home-count"><b id="home-count-files">0</b>File</div>
+          <div class="home-count"><b id="home-count-items">0</b>Jenis barang</div>
         </div>
 
         <!-- ALL FILES -->
@@ -371,7 +368,8 @@
           <div class="settings-item tappable" id="btn-backup">
             <div class="settings-item-info">
               <div class="settings-item-label">Backup Data</div>
-              <div class="settings-item-desc">Simpan semua data ke file .json</div>
+              <div class="settings-item-desc">Simpan semua data ke satu file .json</div>
+              <div class="settings-item-desc" id="settings-last-backup">Backup terakhir: belum pernah</div>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
@@ -382,7 +380,7 @@
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
-          <input type="file" id="restore-input" accept=".json" class="hidden" />
+          <input type="file" id="restore-input" accept=".json,application/json" class="hidden" />
           <div class="settings-item tappable danger" id="btn-clear-all">
             <div class="settings-item-info">
               <div class="settings-item-label">Hapus Semua Data</div>
