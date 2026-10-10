@@ -45,6 +45,22 @@ const BelanjaModule = (() => {
     await DB.Settings.set('belanja_history', JSON.stringify(historyData));
   }
 
+  function saveDraft() {
+    if (editingHistId) return;
+    DB.Settings.set('belanja_draft', JSON.stringify(draftItems)).catch(() => {});
+  }
+
+  async function loadDraft() {
+    try {
+      const raw = await DB.Settings.get('belanja_draft');
+      const arr = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(arr) && arr.length && draftItems.length === 0) {
+        draftItems = arr.filter(i => i && i.name && !isNaN(parseFloat(i.modal)));
+        renderDraftList();
+      }
+    } catch (e) {}
+  }
+
   // ---- VIEW SWITCHER ----
   function showView(v) {
     activeView = v;
@@ -161,6 +177,7 @@ const BelanjaModule = (() => {
     const bar   = document.getElementById('belanja-total-bar');
 
     list.innerHTML = '';
+    saveDraft();
 
     if (draftItems.length === 0) {
       empty.classList.remove('hidden');
@@ -389,6 +406,7 @@ const BelanjaModule = (() => {
   }
 
   function init() {
+    loadDraft();
     // Add to draft
     document.getElementById('btn-belanja-add').addEventListener('click', addToDraft);
 

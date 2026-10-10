@@ -50,31 +50,68 @@ const ExportModule = (() => {
     App.toast('CSV berhasil diexport');
   }
 
+  function fmtStamp(ts) {
+    return new Date(ts).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function showLastBackup() {
+    const ts = await DB.Settings.get('last_backup');
+    const el = document.getElementById('settings-last-backup');
+    if (el) el.textContent = ts ? 'Backup terakhir: ' + fmtStamp(ts) : 'Backup terakhir: belum pernah';
+  }
+
   async function backup() {
     const data = await DB.fullDump();
     const json = JSON.stringify(data, null, 2);
-    const date = new Date().toISOString().slice(0,10);
-    downloadBlob(json, `backup-profit-${date}.json`, 'application/json');
-    App.toast('Backup berhasil disimpan');
+    const filename = `backup-profit-${new Date().toISOString().slice(0, 10)}.json`;
+    const file = new File([json], filename, { type: 'application/json' });
+    let shared = false;
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'Backup Profit Kalkulator' });
+        shared = true;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+    if (!shared) downloadBlob(json, filename, 'application/json');
+    await DB.Settings.set('last_backup', Date.now());
+    showLastBackup();
+    App.toast(shared ? 'Backup dibagikan' : 'Backup berhasil disimpan');
+  }
+
+  function readText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('File tidak bisa dibaca.'));
+      reader.readAsText(file);
+    });
   }
 
   async function restore(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async e => {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!data.files || !data.items) throw new Error('Format tidak valid');
-          await DB.restoreFromDump(data);
-          App.toast('Restore berhasil! Memuat ulang...');
-          setTimeout(() => location.reload(), 1200);
-          resolve();
-        } catch (err) {
-          App.toast('Gagal restore: file tidak valid');
-          reject(err);
-        }
-      };
-      reader.readAsText(file);
+    let data, sum;
+    try {
+      data = JSON.parse(await readText(file));
+      sum = DB.validateDump(data);
+    } catch (err) {
+      const msg = err instanceof SyntaxError ? 'File bukan backup yang benar.' : err.message;
+      App.toast('Restore dibatalkan: ' + msg + ' Data kamu tidak berubah.', 4500);
+      return;
+    }
+    const lines = [
+      `${sum.files} file, ${sum.items} barang, ${sum.notes} catatan` + (sum.hasHistory ? `, ${sum.belanja} transaksi belanja.` : '.'),
+      sum.exportedAt ? `Dibuat: ${fmtStamp(sum.exportedAt)}.` : 'Backup lama tanpa tanggal.',
+      'Data saat ini akan diganti.'
+    ];
+    App.confirm('Pulihkan data ini?', lines.join(' '), async () => {
+      try {
+        await DB.restoreFromDump(data);
+        App.toast('Restore berhasil! Memuat ulang...');
+        setTimeout(() => location.reload(), 1200);
+      } catch (err) {
+        App.toast('Restore gagal. Data lama tetap aman.', 4500);
+      }
     });
   }
 
@@ -82,11 +119,10 @@ const ExportModule = (() => {
     document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
     document.getElementById('btn-backup').addEventListener('click', backup);
 
+    showLastBackup();
     const restoreInput = document.getElementById('restore-input');
     document.getElementById('btn-restore').addEventListener('click', () => {
-      App.confirm('Restore Data?', 'Data saat ini akan digantikan oleh data dari file backup.', () => {
-        restoreInput.click();
-      });
+      restoreInput.click();
     });
     restoreInput.addEventListener('change', e => {
       if (e.target.files[0]) restore(e.target.files[0]);

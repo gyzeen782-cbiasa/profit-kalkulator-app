@@ -98,6 +98,7 @@ const App = (() => {
 
   async function init() {
     await DB.open();
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
     await SettingsModule.load();
 
     // Init modules
@@ -132,6 +133,10 @@ const App = (() => {
       document.getElementById(id).addEventListener('click', function(e) {
         if (e.target === this) this.classList.add('hidden');
       });
+    });
+
+    document.addEventListener('focusin', e => {
+      if (e.target.closest && e.target.closest('.modal-box')) setTimeout(() => e.target.scrollIntoView({ block: 'center' }), 300);
     });
 
     // Start on home

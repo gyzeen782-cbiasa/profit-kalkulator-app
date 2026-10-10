@@ -112,26 +112,77 @@ const DB = (() => {
   };
 
   // ---- FULL DUMP (for backup) ----
+  const TRANSIENT_KEYS = ['belanja_history', 'belanja_draft', 'last_backup'];
+  const BACKUP_FORMAT = 'profit-kalkulator-backup';
+  const SCHEMA_VERSION = 2;
+  const APP_VERSION = '1.1.0';
+
   async function fullDump() {
     await open();
-    const [files, items, notes] = await Promise.all([
-      Files.getAll(), Items.getAll(), Notes.getAll()
+    const [files, items, notes, allSettings] = await Promise.all([
+      Files.getAll(), Items.getAll(), Notes.getAll(), req2p(tx('settings').getAll())
     ]);
-    return { files, items, notes, exportedAt: new Date().toISOString(), version: 1 };
+    const hist = allSettings.find(r => r.key === 'belanja_history');
+    return {
+      format: BACKUP_FORMAT,
+      schemaVersion: SCHEMA_VERSION,
+      appVersion: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      files, items, notes,
+      belanjaHistory: hist && hist.value ? JSON.parse(hist.value) : [],
+      settings: allSettings.filter(r => !TRANSIENT_KEYS.includes(r.key)),
+      version: 1
+    };
+  }
+
+  function validateDump(data) {
+    const bad = m => { throw new Error(m); };
+    if (!data || typeof data !== 'object' || Array.isArray(data)) bad('Isi file bukan data backup.');
+    if (data.format && data.format !== BACKUP_FORMAT) bad('File ini bukan backup Profit Kalkulator.');
+    if (!Array.isArray(data.files) || !Array.isArray(data.items)) bad('Data file dan barang tidak ditemukan.');
+    if (data.notes !== undefined && !Array.isArray(data.notes)) bad('Data catatan rusak.');
+    if (data.belanjaHistory !== undefined && !Array.isArray(data.belanjaHistory)) bad('Data history belanja rusak.');
+    if (data.settings !== undefined && !Array.isArray(data.settings)) bad('Data pengaturan rusak.');
+    data.files.forEach(f => { if (!f || !f.id || typeof f.name !== 'string') bad('Ada file di backup yang rusak.'); });
+    data.items.forEach(i => { if (!i || !i.id || !i.fileId) bad('Ada barang di backup yang rusak.'); });
+    (data.notes || []).forEach(n => { if (!n || !n.id) bad('Ada catatan di backup yang rusak.'); });
+    (data.settings || []).forEach(r => { if (!r || typeof r.key !== 'string') bad('Ada pengaturan di backup yang rusak.'); });
+    return {
+      files: data.files.length,
+      items: data.items.length,
+      notes: (data.notes || []).length,
+      belanja: (data.belanjaHistory || []).length,
+      hasHistory: data.belanjaHistory !== undefined,
+      exportedAt: data.exportedAt || null
+    };
   }
 
   async function restoreFromDump(data) {
+    validateDump(data);
     await open();
-    // Clear existing
-    await Promise.all([
-      req2p(tx('files','readwrite').clear()),
-      req2p(tx('items','readwrite').clear()),
-      req2p(tx('notes','readwrite').clear()),
-    ]);
-    // Re-insert
-    for (const f of (data.files || [])) await Files.save(f);
-    for (const i of (data.items || [])) await Items.save(i);
-    for (const n of (data.notes || [])) await Notes.save(n);
+    const withSettings = Array.isArray(data.settings);
+    const touchSettings = withSettings || data.belanjaHistory !== undefined;
+    const names = ['files', 'items', 'notes'].concat(touchSettings ? ['settings'] : []);
+    await new Promise((resolve, reject) => {
+      const t = db.transaction(names, 'readwrite');
+      t.oncomplete = resolve;
+      t.onerror = t.onabort = () => reject(t.error || new Error('Restore gagal'));
+      ['files', 'items', 'notes'].forEach(n => t.objectStore(n).clear());
+      data.files.forEach(f => t.objectStore('files').put(f));
+      data.items.forEach(i => t.objectStore('items').put(i));
+      (data.notes || []).forEach(n => t.objectStore('notes').put(n));
+      if (touchSettings) {
+        const st = t.objectStore('settings');
+        if (withSettings) {
+          st.getAllKeys().onsuccess = e => {
+            e.target.result.filter(k => !TRANSIENT_KEYS.includes(k)).forEach(k => st.delete(k));
+            data.settings.forEach(r => { if (!TRANSIENT_KEYS.includes(r.key)) st.put({ key: r.key, value: r.value }); });
+          };
+        }
+        if (data.belanjaHistory !== undefined) st.put({ key: 'belanja_history', value: JSON.stringify(data.belanjaHistory) });
+        st.put({ key: 'belanja_draft', value: '[]' });
+      }
+    });
   }
 
   async function clearAll() {
@@ -144,5 +195,5 @@ const DB = (() => {
     ]);
   }
 
-  return { open, Files, Items, Notes, Settings, fullDump, restoreFromDump, clearAll };
+  return { open, Files, Items, Notes, Settings, fullDump, validateDump, restoreFromDump, clearAll };
 })();

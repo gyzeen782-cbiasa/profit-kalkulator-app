@@ -19,6 +19,7 @@ const FilesModule = (() => {
   ];
 
   let allFiles = [];
+  let modalByFile = {};
   let sortMode = 'terbaru';
   let editingFileId = null;
   let selectedCat = 'lainnya';
@@ -28,6 +29,10 @@ const FilesModule = (() => {
 
   async function loadFiles() {
     allFiles = await DB.Files.getAll();
+    modalByFile = {};
+    (await DB.Items.getAll()).forEach(i => {
+      modalByFile[i.fileId] = (modalByFile[i.fileId] || 0) + Calc.totalModal(parseFloat(i.stock) || 0, parseFloat(i.modal) || 0);
+    });
     renderFiles();
     renderHome();
   }
@@ -45,14 +50,13 @@ const FilesModule = (() => {
     const items = await DB.Items.getAll();
     const sum = Calc.summarize(items);
 
-    document.getElementById('home-total-value').textContent = Calc.toRupiah(sum.totalJumlah);
-    document.getElementById('home-total-files').textContent =
-      `${allFiles.length} file · ${items.length} jenis barang`;
-
-    // Stats chips
-    document.getElementById('home-stat-profit').textContent = Calc.toRupiah(sum.profit);
-    document.getElementById('home-stat-modal').textContent = Calc.toRupiah(sum.totalModal);
-    document.getElementById('home-stat-stock').textContent = sum.totalStock.toLocaleString('id-ID');
+    let hist = [];
+    try { hist = JSON.parse((await DB.Settings.get('belanja_history')) || '[]'); } catch (e) {}
+    document.getElementById('home-modal-catatan').textContent = Calc.toRupiah(sum.totalModal);
+    document.getElementById('home-modal-belanja').textContent = Calc.toRupiah(hist.reduce((s, h) => s + (parseFloat(h.total) || 0), 0));
+    document.getElementById('home-belanja-count').textContent = hist.length + ' transaksi belanja';
+    document.getElementById('home-count-files').textContent = allFiles.length;
+    document.getElementById('home-count-items').textContent = items.length;
 
     // All files preview (no recent section)
     const preview = document.getElementById('home-files-preview');
@@ -96,7 +100,7 @@ const FilesModule = (() => {
     div.className = 'file-card';
     div.dataset.id = f.id;
 
-    const totalVal  = f.totalJumlah || 0;
+    const totalVal  = modalByFile[f.id] || 0;
     const itemCount = f.itemCount || 0;
 
     div.innerHTML = `
@@ -107,7 +111,7 @@ const FilesModule = (() => {
       </div>
       <div>
         <div class="file-card-value">${Calc.toRupiah(totalVal)}</div>
-        <div class="file-card-value-sub">${Calc.fmtPct(f.pct)} margin</div>
+        <div class="file-card-value-sub">total modal</div>
       </div>
       ${showActions ? `
       <div class="file-card-actions">
